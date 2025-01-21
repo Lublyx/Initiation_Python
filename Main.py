@@ -1,32 +1,212 @@
 import random
 import os
+
+
+# chemain git : c/Users/lucas/OneDrive/Documents/IPI/Initiation_python/Initiation_Python
 # os.system('cls' if os.name == 'nt' else 'clear')
 
-Inventaire = {}
-Stats_Joueur = {}
 
 
+#################################    Définition des dictionnaires        ################################################
+
+
+Inventaire = {
+    "Equipement" : [None, None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
+    "Items" : []
+}
+
+Stats_Joueur = {
+    "PV" : 100,
+    "Déga de base" : 10,
+    "Inventaire" : Inventaire,
+    "Reduction de déga" : 0,
+}
+
+Monstres = {  #### Cractéristique type : (Difficulter, min déga, min déga, vie)
+    "Goule des Brumes" : ["Facile", 6, 12, 20],
+    "Ombre Rampante" : ["Facile", 3, 9, 25],
+    "Troll des Cavernes" : ["Facile", 2, 5, 30],
+    "Lycan Sombre" : ["Facile", 10, 15, 15],
+    "Cyclope Rugissant" : ["Moyen", 15, 20, 25],
+    "Spectre Sifflant" : ["Moyen", 20, 25, 30],
+    "Vampire de Sang Noir" : ["Moyen", 10, 17, 35],
+    "Basilic Hypnotique" : ["Moyen", 7, 15, 40],
+    "Faucheuse Spectrale" : ["Moyen", 18, 22, 30],
+    "Serpent des Flammes" : ["Moyen", 15, 17, 30],
+    "Kraken d’Obsidienne" : ["Moyen+", 20, 30, 30],
+    "Minotaure Écarlate" : ["Moyen+", 18, 25, 35],
+    "Hydre des Abysses" : ["Moyen+", 20, 24, 40],
+    "Chaman Sauvage" : ["Dure", 25, 28, 45],
+    "Golem d’Ébène" : ["Dure", 23, 26, 50],
+    "Salamandre Incandescente" : ["Dure", 20, 30, 40],
+    "Wyverne de Givre" : ["Dure", 19, 26, 40],
+    "Harpie Chantante" : ["Extreme", 25, 35, 55],
+    "Gardien de Cristal" : ["Extreme", 30, 40, 60],
+    "Démon Arcanique": ["Extreme", 40, 55, 70]}
+
+Armure = { #### Cractéristique type : (Protection, Chance de drop)
+    "Armure Commune" : [0.10, 0.25],
+    "Armure Rare" : [0.25, 0.20],
+    "Armure Epic" : [0.50, 0.15],
+    "Armure Legendaire" : [0.70, 0.10],
+    "Bouclier Runique" : [0.30, 0.20],
+}
+
+Armes = { #### Cractéristique type : (Déga, Vitesse attaque, Rareter, Chance de drop)
+    "Lame du Vent" : [5, 1, "Commun"],
+    "Arc Éthéré" : [2, 1.5, "Commun"],
+    "Anneau des Âmes" : [7, 1.5, "Rare"],
+    "Bâton de Lumière" : [10, 1, "Rare"],
+    "Amulette de l'Ombre" : [4, 3, "Epic"],
+    "Dague Sanguinaire" : [20, 1, "Epic"],
+    "Flèche Explosive" : [14, 1.3, "Epic"],
+    "Grimoire Perdu" : [30, 0.5, "Legendaire"],
+    "Heaume de Fer Noir" : [25, 1, "Legendaire"],
+    "Étoile Polaire" : [22, 1.2, "Legendaire"],
+    "Épée Sifflante" : [40, 1, "Mythique"],
+}
 
 Biome = {
     'Forêt' : [{
-        'Mob' : [],
-        'Loot' : [],
-        'Ressources' : []
+        'Mob' : ["Goule des Brumes", "Ombre Rampante", "Troll des Cavernes", "Lycan Sombre", "Cyclope Rugissant"],
+        'Loot' : ["Lame du Vent", "Arc Éthéré", "Anneau des Âmes", "Armure Commune", "Potion de soin"],
+        'Ressources' : ["Poudre d'Étoiles", "Cristal Lunaire", "Éclat de Roche Magmatique"],
+        'Difficulter' : 1
     }],
     'Ville' : [{
-        'Mob' : [],
-        'Loot' : [],
-        'Ressources' : []
+        'Mob' : ["Spectre Sifflant", "Vampire de Sang Noir", "Basilic Hypnotique", "Faucheuse Spectrale", "Serpent des Flammes"],
+        'Loot' : ["Bâton de Lumière", "Amulette de l'Ombre", "Bouclier Runique", "Armure Rare", "Potion d'invisibilité"],
+        'Ressources' : ["Sève de l’Arbre Ancien", "Épine du Chaos", "Écaille de Dragon Ancien"],
+        'Difficulter' : 2
     }],
     'Desert' : [{
-        'Mob' : [],
-        'Loot' : [],
-        'Ressources' : []
+        'Mob' : ["Kraken d’Obsidienne", "Minotaure Écarlate", "Hydre des Abysses", "Chaman Sauvage", "Golem d’Ébène"],
+        'Loot' : ["Dague Sanguinaire", "Flèche Explosive", "Grimoire Perdu", "Armure Epic", "Potion de dommge"],
+        'Ressources' : ["Minerai de Mythal", "Plume de Phénix", "Fleur d’Ombrelune"],
+        'Difficulter' : 3
     }],
     'Marécage' : [{
-        'Mob' : [],
-        'Loot' : [],
-        'Ressources' : []
+        'Mob' : ["Salamandre Incandescente", "Wyverne de Givre", "Harpie Chantante", "Gardien de Cristal", "Démon Arcanique"],
+        'Loot' : ["Épée Sifflante", "Heaume de Fer Noir", "Étoile Polaire", "Armure Legendaire", "Totem de resurection"],
+        'Ressources' : ["Pierre de Sang", "Ambre Vivante", "Cendre d’Asharan"],
+        'Difficulter' : 4
     }]
 }
 
+
+#################################    Définition des map        ################################################
+
+### map de 30 x 10
+map_foret = [
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,"@",0,0,0,0,0],
+]
+
+
+
+
+
+#################################    Définition des Variables        ################################################
+
+boucle = False
+position_joueurX = 4
+position_joueurY = 9
+
+
+
+
+
+
+
+#################################    Définition des Fonctions        ################################################
+
+### Afficher la map dans le terminale
+def Afficher_map (map):
+    for i in map :
+        print (i)
+
+### Ce déplacer dans la map (Avancer)
+def Avancer (map, posX, posY):
+    map[posY-1][posX] = "@"
+    map[posY][posX] = 0
+    return (map, posX, posY-1)
+
+### Ce déplacer dans la map (Gauche)
+def Gauche (map, posX, posY):
+    map[posY][posX-1] = "@"
+    map[posY][posX] = 0
+    return (map, posX-1, posY)
+
+### Ce déplacer dans la map (Reculer)
+def Reculer (map, posX, posY):
+    map[posY+1][posX] = "@"
+    map[posY][posX] = 0
+    return (map, posX, posY+1)
+
+### Ce déplacer dans la map (Droite)
+def Droite (map, posX, posY):
+    map[posY][posX+1] = "@"
+    map[posY][posX] = 0
+    return (map, posX+1, posY)
+
+
+
+
+#################################    Programme Principale        ################################################
+
+print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
+
+while boucle == False :
+    Afficher_map (map_foret)
+    choix = input("-->")
+
+    if choix.upper() == "Z":
+        try:
+            tmp = Avancer (map_foret, position_joueurX, position_joueurY)
+            map_foret = tmp[0]
+            position_joueurX = tmp[1]
+            position_joueurY = tmp[2]
+        except:
+            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+
+    elif choix.upper() == "Q":
+        if position_joueurX+1 != -1 and position_joueurX-1 != -1:       ###################     Erreur pour aller à droite !!!!!!
+            tmp = Gauche (map_foret, position_joueurX, position_joueurY)
+            map_foret = tmp[0]
+            position_joueurX = tmp[1]
+            position_joueurY = tmp[2]
+        else :
+            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+
+    elif choix.upper() == "S":
+        try:
+            tmp = Reculer (map_foret, position_joueurX, position_joueurY)
+            map_foret = tmp[0]
+            position_joueurX = tmp[1]
+            position_joueurY = tmp[2]
+        except:
+            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+
+    elif choix.upper() == "D":
+        if position_joueurX+1 != -1:
+            tmp = Droite (map_foret, position_joueurX, position_joueurY)
+            map_foret = tmp[0]
+            position_joueurX = tmp[1]
+            position_joueurY = tmp[2]
+        else :
+            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+
+
+
+
+
+    elif choix == "esc":
+        boucle = True
