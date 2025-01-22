@@ -6,13 +6,24 @@ import os
 # os.system('cls' if os.name == 'nt' else 'clear')
 
 
+################################       Definition des couleurs            #######################################
+
+rouge = "\033[31m"
+vert = "\033[32m"
+jaune = "\033[33m"
+bleue = "\033[34m"
+
+
+default = "\033[0m"  # Réinitialise le style
+
+
 
 #################################    Définition des dictionnaires        ################################################
 
 
 Inventaire = {
-    "Equipement" : ["coucou", None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
-    "Items" : ["nice"]
+    "Equipement" : [None, None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
+    "Items" : []
 }
 
 Stats_Joueur = {
@@ -131,7 +142,13 @@ position_joueurY = 9
 ### Afficher la map dans le terminale
 def Afficher_map (map):
     for i in map :
-        print (i)
+        linge = ''
+        for y in i:
+            if y == '0':
+                linge += f" {y} "
+            elif y == '@':
+                linge += f"{rouge} {y} {default}"
+        print (linge)
 
 ### Ce déplacer dans la map (Avancer)
 def Avancer (map, posX, posY):
@@ -168,32 +185,32 @@ def Affichage_Inventaire ():
     if Aff_equip[0] == None :
         print ("Arme : Aucune")
     else :
-        print (f"Arme : ",{Aff_equip[0]})
+        print (f"Arme : {Aff_equip[0]}")
     if Aff_equip[1] == None :
         print ("Armure : Aucune")
     else :
-        print (f"Arme : ",{Aff_equip[1]})
+        print (f"Arme : {Aff_equip[1]}")
     if Aff_equip[2] == None :
         print ("Bouclier : Aucun")
     else :
-        print (f"Arme : ",{Aff_equip[2]})
+        print (f"Arme : {Aff_equip[2]}")
     print("Items :")
     if Aff_item == [] :
         print ("Inventaire Vide")
     else :
-        for i in Aff_item:
-            print (f"1- ",{i})
+        for i in range (len(Aff_item)):
+            print (f"{i+1} - {Aff_item[i]}")
 
 
 
 
 #################################    Programme Principale        ################################################
 
-print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
+print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile, deplus la touche 'help' est disponible.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
 Afficher_map (map_foret)
 while boucle == False :
     choix = input("-->")
-    if choix.upper() == "Z" or choix.upper() == "Q" or choix.upper() == "S" or choix.upper() == "D" :
+    if choix.upper() == "Z" or choix.upper() == "Q" or choix.upper() == "S" or choix.upper() == "D" : ## Permet de ce déplacer dans la map
         if choix.upper() == "Z":
             if position_joueurY-1 != -1:
                 tmp = Avancer (map_foret, position_joueurX, position_joueurY)
@@ -204,7 +221,7 @@ while boucle == False :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
         elif choix.upper() == "Q":
-            if position_joueurX-1 != -1:       ###################     Erreur pour aller à droite !!!!!!
+            if position_joueurX-1 != -1:     
                 tmp = Gauche (map_foret, position_joueurX, position_joueurY)
                 map_foret = tmp[0]
                 position_joueurX = tmp[1]
@@ -235,19 +252,19 @@ while boucle == False :
         pass
 
     elif choix.upper() == "I" :
-        Affichage_Inventaire()
+        Affichage_Inventaire() ## Afficher l'inventaire du joueur
         
 
 
     elif choix.upper() == "R":
-        Afficher_map (map_foret) ## Actualisation de la map après déplacement
+        Afficher_map (map_foret) ## Actualisation de la map
 
 
-    elif choix.upper() == "HELP" :
+    elif choix.upper() == "HELP" : ## Affiche des informations suplémentaire sur le jeux
         print ("Pour ce déplacer :\n- Avancer : z\n- Gauche : q\n- Reculer : s\n- Droite : d\nPour intéragire : E\nPour voir l'inventaire : i\nPour ouvrir les recettes de craft : c\nPour actualiser la map : r")
 
 
-    elif choix.upper() == "ESC":
+    elif choix.upper() == "ESC": ## Permet de quitter le jeu
         boucle = True
     
     else :
