@@ -11,8 +11,8 @@ import os
 
 
 Inventaire = {
-    "Equipement" : [None, None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
-    "Items" : []
+    "Equipement" : ["coucou", None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
+    "Items" : ["nice"]
 }
 
 Stats_Joueur = {
@@ -98,16 +98,16 @@ Biome = {
 
 ### map de 30 x 10
 map_foret = [
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,"@",0,0,0,0,0],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","0","0","0","0","0","0"],
+    ["0","0","0","0","@","0","0","0","0","0"],
 ]
 
 
@@ -136,26 +136,53 @@ def Afficher_map (map):
 ### Ce déplacer dans la map (Avancer)
 def Avancer (map, posX, posY):
     map[posY-1][posX] = "@"
-    map[posY][posX] = 0
+    map[posY][posX] = "0"
     return (map, posX, posY-1)
 
 ### Ce déplacer dans la map (Gauche)
 def Gauche (map, posX, posY):
     map[posY][posX-1] = "@"
-    map[posY][posX] = 0
+    map[posY][posX] = "0"
     return (map, posX-1, posY)
 
 ### Ce déplacer dans la map (Reculer)
 def Reculer (map, posX, posY):
     map[posY+1][posX] = "@"
-    map[posY][posX] = 0
+    map[posY][posX] = "0"
     return (map, posX, posY+1)
 
 ### Ce déplacer dans la map (Droite)
 def Droite (map, posX, posY):
     map[posY][posX+1] = "@"
-    map[posY][posX] = 0
+    map[posY][posX] = "0"
     return (map, posX+1, posY)
+
+### Afficher l'inventaire du joueur
+def Affichage_Inventaire ():
+    Aff_inv = []
+    Aff_equip = Inventaire["Equipement"]
+    Aff_item = Inventaire["Items"]
+    for elem in Inventaire :
+        Aff_inv.append(elem)
+    print ("Equipement équiper :")
+    if Aff_equip[0] == None :
+        print ("Arme : Aucune")
+    else :
+        print (f"Arme : ",{Aff_equip[0]})
+    if Aff_equip[1] == None :
+        print ("Armure : Aucune")
+    else :
+        print (f"Arme : ",{Aff_equip[1]})
+    if Aff_equip[2] == None :
+        print ("Bouclier : Aucun")
+    else :
+        print (f"Arme : ",{Aff_equip[2]})
+    print("Items :")
+    if Aff_item == [] :
+        print ("Inventaire Vide")
+    else :
+        for i in Aff_item:
+            print (f"1- ",{i})
 
 
 
@@ -163,50 +190,65 @@ def Droite (map, posX, posY):
 #################################    Programme Principale        ################################################
 
 print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
-
+Afficher_map (map_foret)
 while boucle == False :
-    Afficher_map (map_foret)
     choix = input("-->")
+    if choix.upper() == "Z" or choix.upper() == "Q" or choix.upper() == "S" or choix.upper() == "D" :
+        if choix.upper() == "Z":
+            if position_joueurY-1 != -1:
+                tmp = Avancer (map_foret, position_joueurX, position_joueurY)
+                map_foret = tmp[0]
+                position_joueurX = tmp[1]
+                position_joueurY = tmp[2]
+            else :
+                print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
-    if choix.upper() == "Z":
-        try:
-            tmp = Avancer (map_foret, position_joueurX, position_joueurY)
-            map_foret = tmp[0]
-            position_joueurX = tmp[1]
-            position_joueurY = tmp[2]
-        except:
-            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+        elif choix.upper() == "Q":
+            if position_joueurX-1 != -1:       ###################     Erreur pour aller à droite !!!!!!
+                tmp = Gauche (map_foret, position_joueurX, position_joueurY)
+                map_foret = tmp[0]
+                position_joueurX = tmp[1]
+                position_joueurY = tmp[2]
+            else :
+                print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
-    elif choix.upper() == "Q":
-        if position_joueurX+1 != -1 and position_joueurX-1 != -1:       ###################     Erreur pour aller à droite !!!!!!
-            tmp = Gauche (map_foret, position_joueurX, position_joueurY)
-            map_foret = tmp[0]
-            position_joueurX = tmp[1]
-            position_joueurY = tmp[2]
-        else :
-            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+        elif choix.upper() == "S":
+            try:
+                tmp = Reculer (map_foret, position_joueurX, position_joueurY)
+                map_foret = tmp[0]
+                position_joueurX = tmp[1]
+                position_joueurY = tmp[2]
+            except:
+                print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
-    elif choix.upper() == "S":
-        try:
-            tmp = Reculer (map_foret, position_joueurX, position_joueurY)
-            map_foret = tmp[0]
-            position_joueurX = tmp[1]
-            position_joueurY = tmp[2]
-        except:
-            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+        elif choix.upper() == "D":
+            if position_joueurX+1 != 10:
+                tmp = Droite (map_foret, position_joueurX, position_joueurY)
+                map_foret = tmp[0]
+                position_joueurX = tmp[1]
+                position_joueurY = tmp[2]
+            else :
+                print ("Un mur géant !!!!, tu ne peut pas le traverser")
+        Afficher_map (map_foret) ## Actualisation de la map après déplacement
 
-    elif choix.upper() == "D":
-        if position_joueurX+1 != -1:
-            tmp = Droite (map_foret, position_joueurX, position_joueurY)
-            map_foret = tmp[0]
-            position_joueurX = tmp[1]
-            position_joueurY = tmp[2]
-        else :
-            print ("Un mur géant !!!!, tu ne peut pas le traverser")
+    elif choix.upper() == "E" :
+        pass
 
+    elif choix.upper() == "I" :
+        Affichage_Inventaire()
+        
 
 
+    elif choix.upper() == "R":
+        Afficher_map (map_foret) ## Actualisation de la map après déplacement
 
 
-    elif choix == "esc":
+    elif choix.upper() == "HELP" :
+        print ("Pour ce déplacer :\n- Avancer : z\n- Gauche : q\n- Reculer : s\n- Droite : d\nPour intéragire : E\nPour voir l'inventaire : i\nPour ouvrir les recettes de craft : c\nPour actualiser la map : r")
+
+
+    elif choix.upper() == "ESC":
         boucle = True
+    
+    else :
+        print ("Saisie invalide")
