@@ -1,4 +1,4 @@
-import random
+from random import*
 import os
 
 
@@ -12,6 +12,7 @@ rouge = "\033[31m"
 vert = "\033[32m"
 jaune = "\033[33m"
 bleue = "\033[34m"
+gris = "\033[61m"
 
 
 default = "\033[0m"  # Réinitialise le style
@@ -140,38 +141,36 @@ position_joueurY = 9
 #################################    Définition des Fonctions        ################################################
 
 ### Afficher la map dans le terminale
-def Afficher_map (map):
-    for i in map :
+def Afficher_map (map_aff):
+    for i in map_aff :
         linge = ''
         for y in i:
-            if y == '0':
-                linge += f" {y} "
+            if y == ',' or y == "'" :
+                linge += f"{vert} {y} {default}"
+            elif y == 'X' or y == '/' :
+                linge += f"{gris} {y} {default}"
             elif y == '@':
                 linge += f"{rouge} {y} {default}"
         print (linge)
 
 ### Ce déplacer dans la map (Avancer)
 def Avancer (map, posX, posY):
-    map[posY-1][posX] = "@"
-    map[posY][posX] = "0"
+    map[posY-1][posX], map[posY][posX] =  map[posY][posX], map[posY-1][posX]
     return (map, posX, posY-1)
 
 ### Ce déplacer dans la map (Gauche)
 def Gauche (map, posX, posY):
-    map[posY][posX-1] = "@"
-    map[posY][posX] = "0"
+    map[posY][posX-1], map[posY][posX] = map[posY][posX],  map[posY][posX-1]
     return (map, posX-1, posY)
 
 ### Ce déplacer dans la map (Reculer)
 def Reculer (map, posX, posY):
-    map[posY+1][posX] = "@"
-    map[posY][posX] = "0"
+    map[posY+1][posX], map[posY][posX] = map[posY][posX], map[posY+1][posX]
     return (map, posX, posY+1)
 
 ### Ce déplacer dans la map (Droite)
 def Droite (map, posX, posY):
-    map[posY][posX+1] = "@"
-    map[posY][posX] = "0"
+    map[posY][posX+1], map[posY][posX] = map[posY][posX], map[posY][posX+1]
     return (map, posX+1, posY)
 
 ### Afficher l'inventaire du joueur
@@ -202,12 +201,35 @@ def Affichage_Inventaire ():
             print (f"{i+1} - {Aff_item[i]}")
 
 
+def generer_map (x, y):
+    map_tmp = []
+    for i in range (10):
+        map2_tmp = []
+        for z in range (10):
+            if z == x and i == y:
+                map2_tmp.append("@")
+            else :
+                seed = randint(1, 7)
+                if seed == 2 or seed == 4 or seed == 6 :
+                    map2_tmp.append(",")
+                elif seed == 1 :
+                    map2_tmp.append("'")
+                elif seed == 3 or seed == 5:
+                    map2_tmp.append("X")
+                elif seed == 7 :
+                    map2_tmp.append("/")
+        map_tmp.append(map2_tmp)
+    return (map_tmp)
 
 
 #################################    Programme Principale        ################################################
 
 print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile, deplus la touche 'help' est disponible.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
+
+map_foret = generer_map(position_joueurX, position_joueurY)
+
 Afficher_map (map_foret)
+
 while boucle == False :
     choix = input("-->")
     if choix.upper() == "Z" or choix.upper() == "Q" or choix.upper() == "S" or choix.upper() == "D" : ## Permet de ce déplacer dans la map
@@ -248,6 +270,7 @@ while boucle == False :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
         Afficher_map (map_foret) ## Actualisation de la map après déplacement
 
+
     elif choix.upper() == "E" :
         pass
 
@@ -269,3 +292,4 @@ while boucle == False :
     
     else :
         print ("Saisie invalide")
+
