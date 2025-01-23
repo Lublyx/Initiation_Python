@@ -109,18 +109,7 @@ Biome = {
 #################################    Définition des map        ################################################
 
 ### map de 30 x 10
-map_foret = [
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","0","0","0","0","0","0"],
-    ["0","0","0","0","@","0","0","0","0","0"],
-]
+map_foret = []
 
 
 
@@ -131,6 +120,7 @@ map_foret = [
 boucle = False
 position_joueurX = 4
 position_joueurY = 9
+position_avant = ","
 
 
 
@@ -154,24 +144,40 @@ def Afficher_map (map_aff):
         print (linge)
 
 ### Ce déplacer dans la map (Avancer)
-def Avancer (map, posX, posY):
-    map[posY-1][posX], map[posY][posX] =  map[posY][posX], map[posY-1][posX]
-    return (map, posX, posY-1)
+def Avancer (map, posX, posY, posA):
+    if map[posY-1][posX] != "X":
+        map[posY][posX] = posA 
+        posA =  map[posY-1][posX]
+        map[posY-1][posX] = "@"
+        posY -= 1
+    return (map, posX, posY, posA)
 
 ### Ce déplacer dans la map (Gauche)
-def Gauche (map, posX, posY):
-    map[posY][posX-1], map[posY][posX] = map[posY][posX],  map[posY][posX-1]
-    return (map, posX-1, posY)
+def Gauche (map, posX, posY, posA):
+    if map[posY][posX-1] != "X":
+        map[posY][posX] = posA 
+        posA =  map[posY][posX-1]
+        map[posY][posX-1] = "@"
+        posX -= 1
+    return (map, posX, posY, posA)
 
 ### Ce déplacer dans la map (Reculer)
-def Reculer (map, posX, posY):
-    map[posY+1][posX], map[posY][posX] = map[posY][posX], map[posY+1][posX]
-    return (map, posX, posY+1)
+def Reculer (map, posX, posY, posA):
+    if map[posY+1][posX] != "X":
+        map[posY][posX] = posA 
+        posA =  map[posY+1][posX]
+        map[posY+1][posX] = "@"
+        posY +=1
+    return (map, posX, posY, posA)
 
 ### Ce déplacer dans la map (Droite)
-def Droite (map, posX, posY):
-    map[posY][posX+1], map[posY][posX] = map[posY][posX], map[posY][posX+1]
-    return (map, posX+1, posY)
+def Droite (map, posX, posY, posA):
+    if map[posY][posX+1] != "X":
+        map[posY][posX] = posA 
+        posA =  map[posY][posX+1]
+        map[posY][posX+1] = "@"
+        posX += 1
+    return (map, posX, posY, posA)
 
 ### Afficher l'inventaire du joueur
 def Affichage_Inventaire ():
@@ -212,9 +218,9 @@ def generer_map (x, y):
                 seed = randint(1, 7)
                 if seed == 2 or seed == 4 or seed == 6 :
                     map2_tmp.append(",")
-                elif seed == 1 :
+                elif seed == 1 or seed == 5 :
                     map2_tmp.append("'")
-                elif seed == 3 or seed == 5:
+                elif seed == 3 :
                     map2_tmp.append("X")
                 elif seed == 7 :
                     map2_tmp.append("/")
@@ -235,37 +241,41 @@ while boucle == False :
     if choix.upper() == "Z" or choix.upper() == "Q" or choix.upper() == "S" or choix.upper() == "D" : ## Permet de ce déplacer dans la map
         if choix.upper() == "Z":
             if position_joueurY-1 != -1:
-                tmp = Avancer (map_foret, position_joueurX, position_joueurY)
+                tmp = Avancer (map_foret, position_joueurX, position_joueurY, position_avant)
                 map_foret = tmp[0]
                 position_joueurX = tmp[1]
                 position_joueurY = tmp[2]
+                position_avant = tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
         elif choix.upper() == "Q":
             if position_joueurX-1 != -1:     
-                tmp = Gauche (map_foret, position_joueurX, position_joueurY)
+                tmp = Gauche (map_foret, position_joueurX, position_joueurY, position_avant)
                 map_foret = tmp[0]
                 position_joueurX = tmp[1]
                 position_joueurY = tmp[2]
+                position_avant = tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
         elif choix.upper() == "S":
-            try:
-                tmp = Reculer (map_foret, position_joueurX, position_joueurY)
+            if position_joueurY+1 != 10:
+                tmp = Reculer (map_foret, position_joueurX, position_joueurY, position_avant)
                 map_foret = tmp[0]
                 position_joueurX = tmp[1]
                 position_joueurY = tmp[2]
-            except:
+                position_avant = tmp[3]
+            else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
         elif choix.upper() == "D":
             if position_joueurX+1 != 10:
-                tmp = Droite (map_foret, position_joueurX, position_joueurY)
+                tmp = Droite (map_foret, position_joueurX, position_joueurY, position_avant)
                 map_foret = tmp[0]
                 position_joueurX = tmp[1]
                 position_joueurY = tmp[2]
+                position_avant = tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
         Afficher_map (map_foret) ## Actualisation de la map après déplacement
