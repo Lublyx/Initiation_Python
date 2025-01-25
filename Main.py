@@ -1,45 +1,41 @@
 from random import*
 import os
+import threading
+import time
 
-
-# chemain git : c/Users/lucas/OneDrive/Documents/IPI/Initiation_python/Initiation_Python
+# git path : c/Users/lucas/OneDrive/Documents/IPI/Initiation_python/Initiation_Python
 # os.system('cls' if os.name == 'nt' else 'clear')
 
+################################       Color definition            #######################################
 
-################################       Definition des couleurs            #######################################
+red = "\033[31m"
+green = "\033[32m"
+yellow = "\033[33m"
+blue = "\033[34m"
+gray = "\033[61m"
+default = "\033[0m"  # Reset style
 
-rouge = "\033[31m"
-vert = "\033[32m"
-jaune = "\033[33m"
-bleue = "\033[34m"
-gris = "\033[61m"
+#################################    Dictionary definition        ###############################################
 
-
-default = "\033[0m"  # Réinitialise le style
-
-
-
-#################################    Définition des dictionnaires        ################################################
-
-
-Inventaire = {
+Inventory = {
     "Equipement" : [None, None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
     "Items" : []
 }
 
-Stats_Joueur = {
+Player_stat = {
     "PV" : 100,
-    "Déga de base" : 10,
-    "Inventaire" : Inventaire,
-    "Reduction de déga" : 0,
+    "Multiplicateur de dégat" : 10,
+    "Inventaire" : Inventory,
+    "Reduction de dégat" : 0,
+    "Biome actuel": "foret"
 }
 
-Monstres = {  #### Cractéristique type : (Difficulter, min déga, min déga, vie)
+Monsters = {  #### Value matching : (Difficuly, min dommage, max dommage, health)
     "Goule des Brumes" : ["Facile", 6, 12, 20],
     "Ombre Rampante" : ["Facile", 3, 9, 25],
     "Troll des Cavernes" : ["Facile", 2, 5, 30],
     "Lycan Sombre" : ["Facile", 10, 15, 15],
-    "Cyclope Rugissant" : ["Moyen", 15, 20, 25],
+    "Cyclope Rugissant" : ["Moyen", 13, 17, 25],
     "Spectre Sifflant" : ["Moyen", 20, 25, 30],
     "Vampire de Sang Noir" : ["Moyen", 10, 17, 35],
     "Basilic Hypnotique" : ["Moyen", 7, 15, 40],
@@ -56,7 +52,7 @@ Monstres = {  #### Cractéristique type : (Difficulter, min déga, min déga, vi
     "Gardien de Cristal" : ["Extreme", 30, 40, 60],
     "Démon Arcanique": ["Extreme", 40, 55, 70]}
 
-Armure = { #### Cractéristique type : (Protection, Chance de drop)
+Armuor = { #### Value matching : (Protection, Drop rate)
     "Armure Commune" : [0.10, 0.25],
     "Armure Rare" : [0.25, 0.20],
     "Armure Epic" : [0.50, 0.15],
@@ -64,7 +60,7 @@ Armure = { #### Cractéristique type : (Protection, Chance de drop)
     "Bouclier Runique" : [0.30, 0.20],
 }
 
-Armes = { #### Cractéristique type : (Déga, Vitesse attaque, Rareter, Chance de drop)
+Weapons = { #### Value matching : (Dommage, attack speed, Rarity, Drop rate)
     "Lame du Vent" : [5, 1, "Commun"],
     "Arc Éthéré" : [2, 1.5, "Commun"],
     "Anneau des Âmes" : [7, 1.5, "Rare"],
@@ -78,136 +74,121 @@ Armes = { #### Cractéristique type : (Déga, Vitesse attaque, Rareter, Chance d
     "Épée Sifflante" : [40, 1, "Mythique"],
 }
 
-Biome = {
-    'Forêt' : [{
+Bioms = {  ## 4 bioms, and the mob/ loot/ ressources/ difficulty we can find in each maps
+    'Forêt' : {
         'Mob' : ["Goule des Brumes", "Ombre Rampante", "Troll des Cavernes", "Lycan Sombre", "Cyclope Rugissant"],
         'Loot' : ["Lame du Vent", "Arc Éthéré", "Anneau des Âmes", "Armure Commune", "Potion de soin"],
         'Ressources' : ["Poudre d'Étoiles", "Cristal Lunaire", "Éclat de Roche Magmatique"],
         'Difficulter' : 1
-    }],
-    'Ville' : [{
+    },
+    'Ville' : {
         'Mob' : ["Spectre Sifflant", "Vampire de Sang Noir", "Basilic Hypnotique", "Faucheuse Spectrale", "Serpent des Flammes"],
         'Loot' : ["Bâton de Lumière", "Amulette de l'Ombre", "Bouclier Runique", "Armure Rare", "Potion d'invisibilité"],
         'Ressources' : ["Sève de l’Arbre Ancien", "Épine du Chaos", "Écaille de Dragon Ancien"],
         'Difficulter' : 2
-    }],
-    'Desert' : [{
+    },
+    'Desert' : {
         'Mob' : ["Kraken d’Obsidienne", "Minotaure Écarlate", "Hydre des Abysses", "Chaman Sauvage", "Golem d’Ébène"],
         'Loot' : ["Dague Sanguinaire", "Flèche Explosive", "Grimoire Perdu", "Armure Epic", "Potion de dommge"],
         'Ressources' : ["Minerai de Mythal", "Plume de Phénix", "Fleur d’Ombrelune"],
         'Difficulter' : 3
-    }],
-    'Marécage' : [{
+    },
+    'Marécage' : {
         'Mob' : ["Salamandre Incandescente", "Wyverne de Givre", "Harpie Chantante", "Gardien de Cristal", "Démon Arcanique"],
         'Loot' : ["Épée Sifflante", "Heaume de Fer Noir", "Étoile Polaire", "Armure Legendaire", "Totem de resurection"],
         'Ressources' : ["Pierre de Sang", "Ambre Vivante", "Cendre d’Asharan"],
         'Difficulter' : 4
-    }]
+    }
 }
 
+#################################    map definition        ################################################
 
-#################################    Définition des map        ################################################
+### 10 x 10 map
+map_forest = []
 
-### map de 30 x 10
-map_foret = []
+#################################    Variable definition        ################################################
 
+loop = False
+player_X = 4
+player_Y = 9
+last_location = ","
 
+#################################    fonctions definition        ################################################
 
-
-
-#################################    Définition des Variables        ################################################
-
-boucle = False
-position_joueurX = 4
-position_joueurY = 9
-position_avant = ","
-
-
-
-
-
-
-
-#################################    Définition des Fonctions        ################################################
-
-### Afficher la map dans le terminale
-def Afficher_map (map_aff):
-    for i in map_aff :
-        linge = ''
+### Display map in terminal
+def Display_map (map_dis):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    for i in map_dis :
+        lign = ''
         for y in i:
-            if y == ',' or y == "'" :
-                linge += f"{vert} {y} {default}"
-            elif y == 'X' or y == '/' :
-                linge += f"{gris} {y} {default}"
-            elif y == '@':
-                linge += f"{rouge} {y} {default}"
-        print (linge)
+            if y == ',' or y == "'" : 
+                lign += f"{green} {y} {default}"
+            elif y == 'X' or y == '/' : 
+                lign += f"{gray} {y} {default}"
+            elif y == '@': 
+                lign += f"{red} {y} {default}"
+        print (lign)
 
-### Ce déplacer dans la map (Avancer)
-def Avancer (map, posX, posY, posA):
+### Moove in the map (forward)
+def Forward (map, posX, posY, posA):
     if map[posY-1][posX] != "X":
-        map[posY][posX] = posA 
-        posA =  map[posY-1][posX]
+        map[posY][posX], posA = posA, map[posY-1][posX]
         map[posY-1][posX] = "@"
         posY -= 1
     return (map, posX, posY, posA)
 
-### Ce déplacer dans la map (Gauche)
-def Gauche (map, posX, posY, posA):
+### Moove in the map (Left)
+def Left (map, posX, posY, posA):
     if map[posY][posX-1] != "X":
-        map[posY][posX] = posA 
-        posA =  map[posY][posX-1]
+        map[posY][posX], posA = posA, map[posY][posX-1]
         map[posY][posX-1] = "@"
         posX -= 1
     return (map, posX, posY, posA)
 
-### Ce déplacer dans la map (Reculer)
-def Reculer (map, posX, posY, posA):
+### Moove in the map (Backward)
+def Backward (map, posX, posY, posA):
     if map[posY+1][posX] != "X":
-        map[posY][posX] = posA 
-        posA =  map[posY+1][posX]
+        map[posY][posX], posA = posA, map[posY+1][posX]
         map[posY+1][posX] = "@"
         posY +=1
     return (map, posX, posY, posA)
 
-### Ce déplacer dans la map (Droite)
-def Droite (map, posX, posY, posA):
+### Moove in the map (Right)
+def Right (map, posX, posY, posA):
     if map[posY][posX+1] != "X":
-        map[posY][posX] = posA 
-        posA =  map[posY][posX+1]
+        map[posY][posX], posA = posA, map[posY][posX+1]
         map[posY][posX+1] = "@"
         posX += 1
     return (map, posX, posY, posA)
 
-### Afficher l'inventaire du joueur
-def Affichage_Inventaire ():
-    Aff_inv = []
-    Aff_equip = Inventaire["Equipement"]
-    Aff_item = Inventaire["Items"]
-    for elem in Inventaire :
-        Aff_inv.append(elem)
+### Display the player inventory
+def Display_inventory ():
+    Dis_inv = []
+    Dis_equip = Inventory["Equipement"]
+    Dis_item = Inventory["Items"]
+    for elem in Inventory :
+        Dis_inv.append(elem)
     print ("Equipement équiper :")
-    if Aff_equip[0] == None :
+    if Dis_equip[0] == None :
         print ("Arme : Aucune")
     else :
-        print (f"Arme : {Aff_equip[0]}")
-    if Aff_equip[1] == None :
+        print (f"Arme : {Dis_equip[0]}")
+    if Dis_equip[1] == None :
         print ("Armure : Aucune")
     else :
-        print (f"Arme : {Aff_equip[1]}")
-    if Aff_equip[2] == None :
+        print (f"Arme : {Dis_equip[1]}")
+    if Dis_equip[2] == None :
         print ("Bouclier : Aucun")
     else :
-        print (f"Arme : {Aff_equip[2]}")
+        print (f"Arme : {Dis_equip[2]}")
     print("Items :")
-    if Aff_item == [] :
+    if Dis_item == [] :
         print ("Inventaire Vide")
     else :
-        for i in range (len(Aff_item)):
-            print (f"{i+1} - {Aff_item[i]}")
+        for i in range (len(Dis_item)):
+            print (f"{i+1} - {Dis_item[i]}")
 
-
-def generer_map (x, y):
+def map_generation (x, y): ## Random map generation
     map_tmp = []
     for i in range (10):
         map2_tmp = []
@@ -227,78 +208,146 @@ def generer_map (x, y):
         map_tmp.append(map2_tmp)
     return (map_tmp)
 
+## interaction between player en universe 
+def interaction (posA) :
+    if posA == "/":
+        count = 0
+        if Player_stat["Biome actuel"] == "foret" :
+            Random_Monster = randint(0, 4)
+            for i in Monsters :
+                if count == Random_Monster :
+                    for elem in Bioms["Forêt"]["Mob"] :
+                        if elem == i :
+                            load_pv = Monsters[elem][3]
+                            load_domage = randint(Monsters[elem][1], Monsters[elem][2])
+                            print (elem,"vous attaque!!\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
+                            if Inventory["Equipement"][0] == None :
+                                print ("\nAppuyer sur 'E' le plus de fois possible pour faire plus de dégat. (les attaques s'enchaine, il faut être réactif)")
+                                start = input("Ready? (Y/N)\n-->")
+                                start_loop = False 
+                                while start_loop == False :
+                                    if start.upper() == "Y" :
+                                        while load_pv > 0 and Player_stat["PV"] > 0:
+                                            os.system('cls' if os.name == 'nt' else 'clear')
+                                            print ("\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
+                                            t = threading.Timer(5, lambda: print("\nAppuier sur 'enter' pour valider"))
+                                            t.start()
+                                            attack = input("Attaquer!!\n-->")
+                                            t.cancel()
+                                            print ("Dégat donner :", (len(attack)/20)*Player_stat["Multiplicateur de dégat"],"Dégat reçu :", load_domage)
+                                            load_pv -= (len(attack)/20)*Player_stat["Multiplicateur de dégat"]
+                                            Player_stat["PV"] -= load_domage
+                                            time.sleep(5)
 
-#################################    Programme Principale        ################################################
+                                        if Player_stat["PV"] == 0 :
+                                            start_loop = True
+                                            return False
+                                        else :
+                                            print ("Monstre vaincu !!\nBien jouer\n\n",elem,":\n________________________\n  HP :", 0,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
+                                            time.sleep(5)
+                                            posA = "'"
+                                            start_loop = True
+                                            return (True, posA)
+
+                                    elif start.upper() == "N" :
+                                        start_loop = (True, posA)
+                                    else :
+                                        print ("erreur de saisie")
+                count += 1 
+    return (None, None)
+
+## give the loot to the player
+def loot():
+    if Player_stat["Biome actuel"] == "foret" :
+        equip = randint(0,4)
+        item = randint (0,2)
+        Inventory["Items"].append(Bioms["Forêt"]["Loot"][equip])
+        Inventory["Items"].append(Bioms["Forêt"]["Ressources"][item])
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print ("vous avez trouver :",Bioms["Forêt"]["Loot"][equip],"et",Bioms["Forêt"]["Ressources"][item])
+
+## Display the player stat
+def Display_stat ():
+    for i in Player_stat:
+        if i != "Inventaire" :
+            print (i,":", Player_stat[i])
+
+#################################    Main Programme        ################################################
 
 print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile, deplus la touche 'help' est disponible.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
 
-map_foret = generer_map(position_joueurX, position_joueurY)
+map_forest = map_generation(player_X, player_Y)
 
-Afficher_map (map_foret)
+Display_map (map_forest)
 
-while boucle == False :
-    choix = input("-->")
-    if choix.upper() == "Z" or choix.upper() == "Q" or choix.upper() == "S" or choix.upper() == "D" : ## Permet de ce déplacer dans la map
-        if choix.upper() == "Z":
-            if position_joueurY-1 != -1:
-                tmp = Avancer (map_foret, position_joueurX, position_joueurY, position_avant)
-                map_foret = tmp[0]
-                position_joueurX = tmp[1]
-                position_joueurY = tmp[2]
-                position_avant = tmp[3]
+while loop == False :
+    choice = input("-->")
+    if choice.upper() == "Z" or choice.upper() == "Q" or choice.upper() == "S" or choice.upper() == "D" : ## Test the input to moove in the map
+        if choice.upper() == "Z": ## Moov forward
+            if player_Y-1 != -1:
+                tmp = Forward (map_forest, player_X, player_Y, last_location)
+                map_forest, player_X, player_Y, last_location = tmp[0], tmp[1], tmp[2], tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
-        elif choix.upper() == "Q":
-            if position_joueurX-1 != -1:     
-                tmp = Gauche (map_foret, position_joueurX, position_joueurY, position_avant)
-                map_foret = tmp[0]
-                position_joueurX = tmp[1]
-                position_joueurY = tmp[2]
-                position_avant = tmp[3]
+        elif choice.upper() == "Q": ## Moove left
+            if player_X-1 != -1:     
+                tmp = Left (map_forest, player_X, player_Y, last_location)
+                map_forest = tmp[0]
+                player_X = tmp[1]
+                player_Y = tmp[2]
+                last_location = tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
-        elif choix.upper() == "S":
-            if position_joueurY+1 != 10:
-                tmp = Reculer (map_foret, position_joueurX, position_joueurY, position_avant)
-                map_foret = tmp[0]
-                position_joueurX = tmp[1]
-                position_joueurY = tmp[2]
-                position_avant = tmp[3]
+        elif choice.upper() == "S": ## moove backward
+            if player_Y+1 != 10:
+                tmp = Backward (map_forest, player_X, player_Y, last_location)
+                map_forest = tmp[0]
+                player_X = tmp[1]
+                player_Y = tmp[2]
+                last_location = tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
 
-        elif choix.upper() == "D":
-            if position_joueurX+1 != 10:
-                tmp = Droite (map_foret, position_joueurX, position_joueurY, position_avant)
-                map_foret = tmp[0]
-                position_joueurX = tmp[1]
-                position_joueurY = tmp[2]
-                position_avant = tmp[3]
+        elif choice.upper() == "D": ## moove right
+            if player_X+1 != 10:
+                tmp = Right (map_forest, player_X, player_Y, last_location)
+                map_forest = tmp[0]
+                player_X = tmp[1]
+                player_Y = tmp[2]
+                last_location = tmp[3]
             else :
                 print ("Un mur géant !!!!, tu ne peut pas le traverser")
-        Afficher_map (map_foret) ## Actualisation de la map après déplacement
+        Display_map (map_forest) ## Refresh map after mooving
 
 
-    elif choix.upper() == "E" :
-        pass
+    elif choice.upper() == "E" : ## start combat with an random monster
+        result = interaction(last_location)
+        if  result[0] == True:
+            last_location = result[1]
+            loot ()
+            time.sleep(5)
+            Display_map(map_forest)
+        elif result[0] == False :
+            loop = True
+            print ("Game Over")
 
-    elif choix.upper() == "I" :
-        Affichage_Inventaire() ## Afficher l'inventaire du joueur
-        
+    elif choice.upper() == "A": ## Display the player statistic
+        Display_stat()
 
+    elif choice.upper() == "I" :
+        Display_inventory() ## Display the player inventory
 
-    elif choix.upper() == "R":
-        Afficher_map (map_foret) ## Actualisation de la map
+    elif choice.upper() == "R":
+        os.system('cls' if os.name == 'nt' else 'clear')
+        Display_map (map_forest) ## Refresh map
 
+    elif choice.upper() == "HELP" : ## Display some usefull information about the game mechanics
+        print ("Pour ce déplacer :\n- Avancer : z\n- Gauche : q\n- Reculer : s\n- Droite : d\nPour intéragire : E\nPour voir l'inventaire : i\nPour actualiser la map : r\nPour afficher les statistiques du joueur : a\nPour quitter : esc")
 
-    elif choix.upper() == "HELP" : ## Affiche des informations suplémentaire sur le jeux
-        print ("Pour ce déplacer :\n- Avancer : z\n- Gauche : q\n- Reculer : s\n- Droite : d\nPour intéragire : E\nPour voir l'inventaire : i\nPour ouvrir les recettes de craft : c\nPour actualiser la map : r")
-
-
-    elif choix.upper() == "ESC": ## Permet de quitter le jeu
-        boucle = True
+    elif choice.upper() == "ESC": ## Can leave the game
+        loop = True
     
     else :
         print ("Saisie invalide")
