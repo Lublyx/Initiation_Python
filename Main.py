@@ -219,9 +219,9 @@ def interaction (posA) :
                             load_domage = randint(Monsters[elem][1], Monsters[elem][2])
                             print (elem,"vous attaque!!\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"]) #Display information
                             print ("\nAppuyer sur 'E' le plus de fois possible pour faire plus de dégâts. (les attaques s'enchaînent, il faut être réactif)")
-                            start = input("Ready? (Y/N)\n-->")
                             start_loop = False 
                             while start_loop == False :
+                                start = input("Ready? (Y/N)\n-->")
                                 if start.upper() == "Y" :
                                     while load_pv > 0 and Player_stat["PV"] > 0: 
                                         os.system('cls' if os.name == 'nt' else 'clear')
@@ -231,12 +231,12 @@ def interaction (posA) :
                                         t.start()
                                         attack = input("Attaquez !!\n-->")
                                         t.cancel()
-                                        load_pv -= (len(attack)/20)*Player_stat["Multiplicateur de dégat"]
-                                        if load_pv > (len(attack)/20)*Player_stat["Multiplicateur de dégat"] :
+                                        if load_pv > ((len(attack)/20)*Player_stat["Multiplicateur de dégat"]) :
                                             Player_stat["PV"] -= round(load_domage - (load_domage * Player_stat["Reduction de dégat"]), 2)
                                             print ("Dégat donner :", round(((len(attack)/20)*Player_stat["Multiplicateur de dégat"]), 2),"Dégat reçu :", round(load_domage - (load_domage * Player_stat["Reduction de dégat"]), 2))
                                         else:
                                             print ("Dégat donner :", round(((len(attack)/20)*Player_stat["Multiplicateur de dégat"]), 2))
+                                        load_pv -= (len(attack)/20)*Player_stat["Multiplicateur de dégat"]
                                         time.sleep(5)
 
                                     
