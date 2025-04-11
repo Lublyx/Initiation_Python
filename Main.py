@@ -349,35 +349,40 @@ while loop == False :
 
     elif choice.upper() == "E" : ## start combat with an random monster
         result = interaction(last_location)
-        if  result[0] == True:
-            if result[2] == "Leave": # if the player leave a fight he is put at his previous location (before enter in the event)
-                if last_D == "F": map_forest, player_X, player_Y, last_location = Backward (map_forest, player_X, player_Y, last_location) 
-                elif last_D == "B": map_forest, player_X, player_Y, last_location = Forward (map_forest, player_X, player_Y, last_location)
-                elif last_D == "R" : map_forest, player_X, player_Y, last_location = Left (map_forest, player_X, player_Y, last_location)
-                elif last_D == "L" : map_forest, player_X, player_Y, last_location = Right (map_forest, player_X, player_Y, last_location)
-                last_location[0] = last_location[1] #refresh the last location item
-            else:
-                last_location = result[1]
-            Display_map(map_forest)
-            if win_check() == True : #Win display
-                print("""
-                  
+        try:
+            if  result[0] == True:
+                if result[2] == "Leave": # if the player leave a fight he is put at his previous location (before enter in the event)
+                    if last_D == "F": map_forest, player_X, player_Y, last_location = Backward (map_forest, player_X, player_Y, last_location) 
+                    elif last_D == "B": map_forest, player_X, player_Y, last_location = Forward (map_forest, player_X, player_Y, last_location)
+                    elif last_D == "R" : map_forest, player_X, player_Y, last_location = Left (map_forest, player_X, player_Y, last_location)
+                    elif last_D == "L" : map_forest, player_X, player_Y, last_location = Right (map_forest, player_X, player_Y, last_location)
+                    last_location[0] = last_location[1] #refresh the last location item
+                else:
+                    last_location = result[1]
+                Display_map(map_forest)
+                if win_check() == True : #Win display
+                    print("""
+                    
 
-                  Quelle puissance !! Vous avez réussi à vaincre tous les monstres !
+                    Quelle puissance !! Vous avez réussi à vaincre tous les monstres !
 
-                                Vous avez gagné, Bien joué !!!!
-                  
-                  """)
+                                    Vous avez gagné, Bien joué !!!!
+                    
+                    """)
+                    loop = True
+            elif result[0] == False : #Loose diplay
                 loop = True
-        elif result[0] == False : #Loose diplay
-            loop = True
-            print ("""
-                   
-                   Vous avez été vaincu par un monstre maléfique !
-                   
-                                    Game Over !
-                   """)
-
+                print ("""
+                    
+                    Vous avez été vaincu par un monstre maléfique !
+                    
+                                        Game Over !
+                    """)
+        except:
+            print("\nIl n'y à rien à faire ici...\n")
+            time.sleep(3)
+            os.system('cls' if os.name == 'nt' else 'clear')
+            Display_map(map_forest)
 
     elif choice.upper() == "A": ## Display the player statistic
         Display_stat()
