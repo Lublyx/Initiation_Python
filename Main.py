@@ -12,6 +12,7 @@ red = "\033[31m"
 green = "\033[32m"
 yellow = "\033[33m"
 blue = "\033[34m"
+purple = "\033[95m"
 gray = "\033[61m"
 default = "\033[0m"  # Reset style
 
@@ -112,62 +113,77 @@ map_forest = []
 loop = False
 player_X = 4
 player_Y = 9
-last_location = ","
+last_location = [",",","]
+last_D = "D"
 
 #################################    fonctions definition        ################################################
 
 ### Display map in terminal
 def Display_map (map_dis):
-    os.system('cls' if os.name == 'nt' else 'clear')
     for i in map_dis :
         lign = ''
         for y in i:
             if y == ',' or y == "'" : 
                 lign += f"{green} {y} {default}"
-            elif y == 'X' or y == '/' : 
+            elif y == 'X' : 
                 lign += f"{gray} {y} {default}"
+            elif y == '/' : 
+                lign += f"{purple} {y} {default}"
             elif y == '@': 
                 lign += f"{red} {y} {default}"
         print (lign)
 
 ### Moove in the map (forward)
 def Forward (map, posX, posY, posA):
+    os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY-1][posX] != "X":
-        map[posY][posX], posA = posA, map[posY-1][posX]
+        
+        map[posY][posX], posA[0] = posA[0], map[posY-1][posX]
+        posA[1] = posA[0]
         map[posY-1][posX] = "@"
         posY -= 1
     return (map, posX, posY, posA)
 
 ### Moove in the map (Left)
 def Left (map, posX, posY, posA):
+    os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY][posX-1] != "X":
-        map[posY][posX], posA = posA, map[posY][posX-1]
+        
+        map[posY][posX], posA[0] = posA[0], map[posY][posX-1]
+        posA[1] = posA[0]
         map[posY][posX-1] = "@"
         posX -= 1
     return (map, posX, posY, posA)
 
 ### Moove in the map (Backward)
 def Backward (map, posX, posY, posA):
+    os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY+1][posX] != "X":
-        map[posY][posX], posA = posA, map[posY+1][posX]
+        map[posY][posX], posA[0] = posA[0], map[posY+1][posX]
+        posA[1] = posA[0]
         map[posY+1][posX] = "@"
         posY +=1
     return (map, posX, posY, posA)
 
 ### Moove in the map (Right)
 def Right (map, posX, posY, posA):
+    os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY][posX+1] != "X":
-        map[posY][posX], posA = posA, map[posY][posX+1]
+        
+        map[posY][posX], posA[0] = posA[0], map[posY][posX+1]
+        posA[1] = posA[0]
         map[posY][posX+1] = "@"
         posX += 1
     return (map, posX, posY, posA)
 
-### Display the player inventory
+
+
+### Display the player inventory and equip equipments
 def Display_inventory ():
     Dis_inv = []
     Dis_equip = Inventory["Equipement"]
     Dis_item = Inventory["Items"]
-    print ("Pour équiper une armure ou une arme saisiser le 'N°' de l'objet")
+    print ("Pour équiper une armure ou une arme, saisissez le 'N°' de l'objet")
     for elem in Inventory :
         Dis_inv.append(elem)
     print ("Equipement équiper :")
@@ -194,22 +210,22 @@ def Display_inventory ():
     if choix != "":
         try:
             verif = False
-            for elem in Armor :
-                if Dis_item[int(choix)-1] == elem : 
-                    Inventory["Equipement"][1] = Dis_item[int(choix)-1]
-                    Player_stat["Reduction de dégat"] = Armor[Dis_item[int(choix)-1]][0]
-                    verif = True
-                    print ("Equiper !!")
-            for elem in Weapons :
-                if Dis_item[int(choix)-1]== elem:
-                    Inventory["Equipement"][0] = Dis_item[int(choix)-1]
-                    Player_stat["Multiplicateur de dégat"] = Player_stat["Base_domage"] + Weapons[Dis_item[int(choix)-1]][0]
-                    verif = True
-                    print ("Equiper !!")
-            if verif == False : print("Vous ne pouvez pas équiper cette item")
-            time.sleep(3)
+            if Dis_item[int(choix)-1] in Weapons:
+                Inventory["Equipement"][0] = Dis_item[int(choix)-1]
+                Player_stat["Multiplicateur de dégat"] = Player_stat["Base_domage"] + Weapons[Dis_item[int(choix)-1]][0]
+                verif = True
+                print ("Equiper !!")
+            elif Dis_item[int(choix)-1] in Armor:
+                Inventory["Equipement"][1] = Dis_item[int(choix)-1]
+                Player_stat["Reduction de dégat"] = Armor[Dis_item[int(choix)-1]][0]
+                verif = True
+                print ("Equiper !!")
+            elif verif == False:
+                print("Vous ne pouvez pas équipez cet objet")
+            time.sleep(1)
         except:
             print ("Saisie invalide")
+
     os.system('cls' if os.name == 'nt' else 'clear')
     Display_map (map_forest) ## Refresh map
 
@@ -235,7 +251,7 @@ def map_generation (x, y): ## Random map generation
 
 ## interaction between player en universe 
 def interaction (posA) :
-    if posA == "/":
+    if posA[0] == "/":
         count = 0
         if Player_stat["Biome actuel"] == "foret" :
             Random_Monster = randint(0, 4)
@@ -246,7 +262,7 @@ def interaction (posA) :
                             load_pv = Monsters[elem][3]
                             load_domage = randint(Monsters[elem][1], Monsters[elem][2])
                             print (elem,"vous attaque!!\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
-                            print ("\nAppuyer sur 'E' le plus de fois possible pour faire plus de dégat. (les attaques s'enchaine, il faut être réactif)")
+                            print ("\nAppuyer sur 'E' le plus de fois possible pour faire plus de dégâts. (les attaques s'enchaînent, il faut être réactif)")
                             start = input("Ready? (Y/N)\n-->")
                             start_loop = False 
                             while start_loop == False :
@@ -254,30 +270,40 @@ def interaction (posA) :
                                     while load_pv > 0 and Player_stat["PV"] > 0:
                                         os.system('cls' if os.name == 'nt' else 'clear')
                                         print ("\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
-                                        t = threading.Timer(5, lambda: print("\nAppuier sur 'enter' pour valider"))
+                                        
+                                        t = threading.Timer(5, lambda: print("\nAppuiez sur 'enter' pour valider"))
                                         t.start()
-                                        attack = input("Attaquer!!\n-->")
+                                        attack = input("Attaquez !!\n-->")
                                         t.cancel()
-                                        print ("Dégat donner :", (len(attack)/20)*Player_stat["Multiplicateur de dégat"],"Dégat reçu :", load_domage - (load_domage * Player_stat["Reduction de dégat"]))
                                         load_pv -= (len(attack)/20)*Player_stat["Multiplicateur de dégat"]
-                                        Player_stat["PV"] -= load_domage - (load_domage * Player_stat["Reduction de dégat"])
+                                        if load_pv > (len(attack)/20)*Player_stat["Multiplicateur de dégat"] :
+                                            Player_stat["PV"] -= load_domage - (load_domage * Player_stat["Reduction de dégat"])
+                                            print ("Dégat donner :", (len(attack)/20)*Player_stat["Multiplicateur de dégat"],"Dégat reçu :", load_domage - (load_domage * Player_stat["Reduction de dégat"]))
+                                        else:
+                                            print ("Dégat donner :", (len(attack)/20)*Player_stat["Multiplicateur de dégat"])
                                         time.sleep(5)
 
-                                    if Player_stat["PV"] == 0 :
+                                    
+                                    if Player_stat["PV"] > 0:
+                                        print ("Monstre vaincu !!\nBien jouer\n\n",elem,":\n________________________\n  HP :", 0,"   Dégât :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégât de base :", Player_stat["Multiplicateur de dégat"])
+                                        time.sleep(5)
+                                        loot()
+                                    else:
+                                        print ("Woimp.. Woimp.. Woimp.. !!\nTout ne s'est pas passé comme prévu\n\n",elem,":\n________________________\n  HP :", 0,"   Dégât :", load_domage,"\n\n\nVous :\n________________________\n HP :", 0, "   Dégât de base :", Player_stat["Multiplicateur de dégat"])
                                         start_loop = True
-                                        return False
-                                    else :
-                                        print ("Monstre vaincu !!\nBien jouer\n\n",elem,":\n________________________\n  HP :", 0,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
-                                        time.sleep(5)
-                                        posA = "'"
-                                        return (True, posA)
+                                        return (False, posA)
+                                    time.sleep(5)
+                                    posA[0] = "'"
+                                    return (True, posA, " ")
 
-                                elif start.upper() == "N" :
-                                    start_loop = (True, posA)
+                                elif start.upper() == "N" : # To return at the last location
+                                    start_loop = True
+                                    return (True, posA, "Leave")
+                                    
+
                                 else :
                                     print ("erreur de saisie")
                 count += 1 
-    return (None, None)
 
 ## give the loot to the player
 def loot():
@@ -295,9 +321,36 @@ def Display_stat ():
         if i != "Inventaire" :
             print (i,":", Player_stat[i])
 
+## Check if the player win
+def win_check ():
+    check = True
+    for i in map_forest:
+        for y in i:
+            if y == '/':
+                check = False
+    return check
+
+
 #################################    Main Programme        ################################################
 
-print ("Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile, deplus la touche 'help' est disponible.\ncroutch...crouch...crouch\nTu arrive dans une forêt\n\n\n")
+print(f"""
+{red}________________________________________________________________________________________________________________________________________{default}
+
+Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile, de plus la touche 'help' est disponible.
+
+        Votre mission, si vous l'acceptez, sera de vaincre tous les monstres et de rétablir le pays dans cette plaisante forêt !
+
+{red}________________________________________________________________________________________________________________________________________{default}
+
+""")
+
+for i in range (3):
+    time.sleep(1)
+    print("croutch...")
+time.sleep(1)
+print("Tu arrives dans une forêt !")
+time.sleep(2)
+
 
 map_forest = map_generation(player_X, player_Y)
 
@@ -308,53 +361,65 @@ while loop == False :
     if choice.upper() == "Z" or choice.upper() == "Q" or choice.upper() == "S" or choice.upper() == "D" : ## Test the input to moove in the map
         if choice.upper() == "Z": ## Moov forward
             if player_Y-1 != -1:
-                tmp = Forward (map_forest, player_X, player_Y, last_location)
-                map_forest, player_X, player_Y, last_location = tmp[0], tmp[1], tmp[2], tmp[3]
+                map_forest, player_X, player_Y, last_location = Forward (map_forest, player_X, player_Y, last_location) 
+                last_D="F"
             else :
-                print ("Un mur géant !!!!, tu ne peut pas le traverser")
+                print ("Un mur géant !!!!, tu ne peux pas le traverser")
 
         elif choice.upper() == "Q": ## Moove left
             if player_X-1 != -1:     
-                tmp = Left (map_forest, player_X, player_Y, last_location)
-                map_forest = tmp[0]
-                player_X = tmp[1]
-                player_Y = tmp[2]
-                last_location = tmp[3]
+                map_forest, player_X, player_Y, last_location = Left (map_forest, player_X, player_Y, last_location)
+                last_D="L"
             else :
-                print ("Un mur géant !!!!, tu ne peut pas le traverser")
+                print ("Un mur géant !!!!, tu ne peux pas le traverser")
 
         elif choice.upper() == "S": ## moove backward
             if player_Y+1 != 10:
-                tmp = Backward (map_forest, player_X, player_Y, last_location)
-                map_forest = tmp[0]
-                player_X = tmp[1]
-                player_Y = tmp[2]
-                last_location = tmp[3]
+                map_forest, player_X, player_Y, last_location = Backward (map_forest, player_X, player_Y, last_location)
+                last_D="B"
             else :
-                print ("Un mur géant !!!!, tu ne peut pas le traverser")
+                print ("Un mur géant !!!!, tu ne peux pas le traverser")
 
         elif choice.upper() == "D": ## moove right
             if player_X+1 != 10:
-                tmp = Right (map_forest, player_X, player_Y, last_location)
-                map_forest = tmp[0]
-                player_X = tmp[1]
-                player_Y = tmp[2]
-                last_location = tmp[3]
+                map_forest, player_X, player_Y, last_location = Right (map_forest, player_X, player_Y, last_location)
+                last_D="R"
             else :
-                print ("Un mur géant !!!!, tu ne peut pas le traverser")
+                print ("Un mur géant !!!!, tu ne peux pas le traverser")
         Display_map (map_forest) ## Refresh map after mooving
-
+        
 
     elif choice.upper() == "E" : ## start combat with an random monster
         result = interaction(last_location)
         if  result[0] == True:
-            last_location = result[1]
-            loot ()
-            time.sleep(5)
+            if result[2] == "Leave":
+                if last_D == "F": map_forest, player_X, player_Y, last_location = Backward (map_forest, player_X, player_Y, last_location) 
+                elif last_D == "B": map_forest, player_X, player_Y, last_location = Forward (map_forest, player_X, player_Y, last_location)
+                elif last_D == "R" : map_forest, player_X, player_Y, last_location = Left (map_forest, player_X, player_Y, last_location)
+                elif last_D == "L" : map_forest, player_X, player_Y, last_location = Right (map_forest, player_X, player_Y, last_location)
+                last_location[0] = last_location[1] #refresh the last location item
+            else:
+                last_location = result[1]
             Display_map(map_forest)
+            if win_check() == True :
+                print("""
+                  
+
+                  Quelle puissance !! Vous avez réussi à vaincre tous les monstres !
+
+                                Vous avez gagné, Bien joué !!!!
+                  
+                  """)
+                loop = True
         elif result[0] == False :
             loop = True
-            print ("Game Over")
+            print ("""
+                   
+                   Vous avez été vaincu par un monstre maléfique !
+                   
+                                    Game Over !
+                   """)
+
 
     elif choice.upper() == "A": ## Display the player statistic
         Display_stat()
@@ -374,4 +439,6 @@ while loop == False :
     
     else :
         print ("Saisie invalide")
+
+
 
