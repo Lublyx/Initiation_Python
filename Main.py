@@ -3,9 +3,6 @@ import os
 import threading
 import time
 
-# git path : c/Users/lucas/OneDrive/Documents/IPI/Initiation_python/Initiation_Python
-# os.system('cls' if os.name == 'nt' else 'clear')
-
 ################################       Color definition            #######################################
 
 red = "\033[31m"
@@ -19,7 +16,7 @@ default = "\033[0m"  # Reset style
 #################################    Dictionary definition        ###############################################
 
 Inventory = {
-    "Equipement" : [None, None, None], #### Equipement : (Epée, Armure, Bouclier) (équiper sur le personnage)
+    "Equipement" : [None, None, None], #### Equipement : (sword, armor, shield) (equiped on)
     "Items" : []
 }
 
@@ -38,42 +35,16 @@ Monsters = {  #### Value matching : (Difficuly, min dommage, max dommage, health
     "Troll des Cavernes" : ["Facile", 2, 5, 30],
     "Lycan Sombre" : ["Facile", 10, 15, 15],
     "Cyclope Rugissant" : ["Moyen", 13, 17, 25],
-    "Spectre Sifflant" : ["Moyen", 20, 25, 30],
-    "Vampire de Sang Noir" : ["Moyen", 10, 17, 35],
-    "Basilic Hypnotique" : ["Moyen", 7, 15, 40],
-    "Faucheuse Spectrale" : ["Moyen", 18, 22, 30],
-    "Serpent des Flammes" : ["Moyen", 15, 17, 30],
-    "Kraken d’Obsidienne" : ["Moyen+", 20, 30, 30],
-    "Minotaure Écarlate" : ["Moyen+", 18, 25, 35],
-    "Hydre des Abysses" : ["Moyen+", 20, 24, 40],
-    "Chaman Sauvage" : ["Dure", 25, 28, 45],
-    "Golem d’Ébène" : ["Dure", 23, 26, 50],
-    "Salamandre Incandescente" : ["Dure", 20, 30, 40],
-    "Wyverne de Givre" : ["Dure", 19, 26, 40],
-    "Harpie Chantante" : ["Extreme", 25, 35, 55],
-    "Gardien de Cristal" : ["Extreme", 30, 40, 60],
-    "Démon Arcanique": ["Extreme", 40, 55, 70]}
+    }
 
 Armor = { #### Value matching : (Protection, Drop rate)
     "Armure Commune" : [0.20, 0.25],
-    "Armure Rare" : [0.30, 0.20],
-    "Armure Epic" : [0.50, 0.15],
-    "Armure Legendaire" : [0.70, 0.10],
-    "Bouclier Runique" : [0.30, 0.20],
 }
 
 Weapons = { #### Value matching : (Dommage, attack speed, Rarity, Drop rate)
     "Lame du Vent" : [5, 1, "Commun"],
     "Arc Éthéré" : [2, 1.5, "Commun"],
     "Anneau des Âmes" : [7, 1.5, "Rare"],
-    "Bâton de Lumière" : [10, 1, "Rare"],
-    "Amulette de l'Ombre" : [4, 3, "Epic"],
-    "Dague Sanguinaire" : [20, 1, "Epic"],
-    "Flèche Explosive" : [14, 1.3, "Epic"],
-    "Grimoire Perdu" : [30, 0.5, "Legendaire"],
-    "Heaume de Fer Noir" : [25, 1, "Legendaire"],
-    "Étoile Polaire" : [22, 1.2, "Legendaire"],
-    "Épée Sifflante" : [40, 1, "Mythique"],
 }
 
 Bioms = {  ## 4 bioms, and the mob/ loot/ ressources/ difficulty we can find in each maps
@@ -83,24 +54,6 @@ Bioms = {  ## 4 bioms, and the mob/ loot/ ressources/ difficulty we can find in 
         'Ressources' : ["Poudre d'Étoiles", "Cristal Lunaire", "Éclat de Roche Magmatique"],
         'Difficulter' : 1
     },
-    'Ville' : {
-        'Mob' : ["Spectre Sifflant", "Vampire de Sang Noir", "Basilic Hypnotique", "Faucheuse Spectrale", "Serpent des Flammes"],
-        'Loot' : ["Bâton de Lumière", "Amulette de l'Ombre", "Bouclier Runique", "Armure Rare", "Potion d'invisibilité"],
-        'Ressources' : ["Sève de l’Arbre Ancien", "Épine du Chaos", "Écaille de Dragon Ancien"],
-        'Difficulter' : 2
-    },
-    'Desert' : {
-        'Mob' : ["Kraken d’Obsidienne", "Minotaure Écarlate", "Hydre des Abysses", "Chaman Sauvage", "Golem d’Ébène"],
-        'Loot' : ["Dague Sanguinaire", "Flèche Explosive", "Grimoire Perdu", "Armure Epic", "Potion de dommge"],
-        'Ressources' : ["Minerai de Mythal", "Plume de Phénix", "Fleur d’Ombrelune"],
-        'Difficulter' : 3
-    },
-    'Marécage' : {
-        'Mob' : ["Salamandre Incandescente", "Wyverne de Givre", "Harpie Chantante", "Gardien de Cristal", "Démon Arcanique"],
-        'Loot' : ["Épée Sifflante", "Heaume de Fer Noir", "Étoile Polaire", "Armure Legendaire", "Totem de resurection"],
-        'Ressources' : ["Pierre de Sang", "Ambre Vivante", "Cendre d’Asharan"],
-        'Difficulter' : 4
-    }
 }
 
 #################################    map definition        ################################################
@@ -110,10 +63,16 @@ map_forest = []
 
 #################################    Variable definition        ################################################
 
-loop = False
+loop = False #main program loop
+
+#curent possition on the player in the map
 player_X = 4
 player_Y = 9
+
+#2 previous position of the player (usefull to come back)
 last_location = [",",","]
+
+#previous direction of the deplacment (usefull to come back)
 last_D = "D"
 
 #################################    fonctions definition        ################################################
@@ -124,7 +83,7 @@ def Display_map (map_dis):
         lign = ''
         for y in i:
             if y == ',' or y == "'" : 
-                lign += f"{green} {y} {default}"
+                lign += f"{green} {y} {default}" # Apply some color to the elements of the map
             elif y == 'X' : 
                 lign += f"{gray} {y} {default}"
             elif y == '/' : 
@@ -137,9 +96,8 @@ def Display_map (map_dis):
 def Forward (map, posX, posY, posA):
     os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY-1][posX] != "X":
-        
-        map[posY][posX], posA[0] = posA[0], map[posY-1][posX]
-        posA[1] = posA[0]
+        map[posY][posX], posA[0] = posA[0], map[posY-1][posX] #move the player in the array
+        posA[1] = posA[0] #refresh the 2 last deplacment
         map[posY-1][posX] = "@"
         posY -= 1
     return (map, posX, posY, posA)
@@ -148,7 +106,6 @@ def Forward (map, posX, posY, posA):
 def Left (map, posX, posY, posA):
     os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY][posX-1] != "X":
-        
         map[posY][posX], posA[0] = posA[0], map[posY][posX-1]
         posA[1] = posA[0]
         map[posY][posX-1] = "@"
@@ -169,21 +126,19 @@ def Backward (map, posX, posY, posA):
 def Right (map, posX, posY, posA):
     os.system('cls' if os.name == 'nt' else 'clear')
     if map[posY][posX+1] != "X":
-        
         map[posY][posX], posA[0] = posA[0], map[posY][posX+1]
         posA[1] = posA[0]
         map[posY][posX+1] = "@"
         posX += 1
     return (map, posX, posY, posA)
 
-
-
 ### Display the player inventory and equip equipments
 def Display_inventory ():
+    #display the inventory of the player
     Dis_inv = []
     Dis_equip = Inventory["Equipement"]
     Dis_item = Inventory["Items"]
-    print ("Pour équiper une armure ou une arme, saisissez le 'N°' de l'objet")
+    print ("Pour équiper une armure ou une arme, saisissez le 'N°' de l'objet\nSinon, pressez entrer pour quitter\n")
     for elem in Inventory :
         Dis_inv.append(elem)
     print ("Equipement équiper :")
@@ -206,16 +161,17 @@ def Display_inventory ():
         for i in range (len(Dis_item)):
             print (f"{i+1} - {Dis_item[i]}")
  
+    #Equip some stuff
     choix = input("-->")
     if choix != "":
         try:
             verif = False
-            if Dis_item[int(choix)-1] in Weapons:
+            if Dis_item[int(choix)-1] in Weapons: #Verify that the selected item is a weapon
                 Inventory["Equipement"][0] = Dis_item[int(choix)-1]
                 Player_stat["Multiplicateur de dégat"] = Player_stat["Base_domage"] + Weapons[Dis_item[int(choix)-1]][0]
                 verif = True
                 print ("Equiper !!")
-            elif Dis_item[int(choix)-1] in Armor:
+            elif Dis_item[int(choix)-1] in Armor: #Verify that the selected item is an armor
                 Inventory["Equipement"][1] = Dis_item[int(choix)-1]
                 Player_stat["Reduction de dégat"] = Armor[Dis_item[int(choix)-1]][0]
                 verif = True
@@ -226,7 +182,7 @@ def Display_inventory ():
         except:
             print ("Saisie invalide")
 
-    os.system('cls' if os.name == 'nt' else 'clear')
+    os.system('cls' if os.name == 'nt' else 'clear') #clear the shell
     Display_map (map_forest) ## Refresh map
 
 def map_generation (x, y): ## Random map generation
@@ -236,7 +192,7 @@ def map_generation (x, y): ## Random map generation
         for z in range (10):
             if z == x and i == y:
                 map2_tmp.append("@")
-            else :
+            else : #the different item in the map generate randomly
                 seed = randint(1, 7)
                 if seed == 2 or seed == 4 or seed == 6 :
                     map2_tmp.append(",")
@@ -249,47 +205,47 @@ def map_generation (x, y): ## Random map generation
         map_tmp.append(map2_tmp)
     return (map_tmp)
 
-## interaction between player en universe 
+## interaction between player and event
 def interaction (posA) :
-    if posA[0] == "/":
+    if posA[0] == "/": #Verify that the player is in a event
         count = 0
-        if Player_stat["Biome actuel"] == "foret" :
-            Random_Monster = randint(0, 4)
+        if Player_stat["Biome actuel"] == "foret" : # verify he is in the correct biom
+            Random_Monster = randint(0, 4) # chose a random monster to fight
             for i in Monsters :
                 if count == Random_Monster :
                     for elem in Bioms["Forêt"]["Mob"] :
                         if elem == i :
                             load_pv = Monsters[elem][3]
                             load_domage = randint(Monsters[elem][1], Monsters[elem][2])
-                            print (elem,"vous attaque!!\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
+                            print (elem,"vous attaque!!\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"]) #Display information
                             print ("\nAppuyer sur 'E' le plus de fois possible pour faire plus de dégâts. (les attaques s'enchaînent, il faut être réactif)")
                             start = input("Ready? (Y/N)\n-->")
                             start_loop = False 
                             while start_loop == False :
                                 if start.upper() == "Y" :
-                                    while load_pv > 0 and Player_stat["PV"] > 0:
+                                    while load_pv > 0 and Player_stat["PV"] > 0: 
                                         os.system('cls' if os.name == 'nt' else 'clear')
-                                        print ("\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])
-                                        
+                                        print ("\n\n",elem,":\n________________________\n  HP :", load_pv,"   Dégat :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégat de base :", Player_stat["Multiplicateur de dégat"])#Display information
+                                        #allow 5s to the player to press the attack button as much as he can
                                         t = threading.Timer(5, lambda: print("\nAppuiez sur 'enter' pour valider"))
                                         t.start()
                                         attack = input("Attaquez !!\n-->")
                                         t.cancel()
                                         load_pv -= (len(attack)/20)*Player_stat["Multiplicateur de dégat"]
                                         if load_pv > (len(attack)/20)*Player_stat["Multiplicateur de dégat"] :
-                                            Player_stat["PV"] -= load_domage - (load_domage * Player_stat["Reduction de dégat"])
-                                            print ("Dégat donner :", (len(attack)/20)*Player_stat["Multiplicateur de dégat"],"Dégat reçu :", load_domage - (load_domage * Player_stat["Reduction de dégat"]))
+                                            Player_stat["PV"] -= round(load_domage - (load_domage * Player_stat["Reduction de dégat"]), 2)
+                                            print ("Dégat donner :", round(((len(attack)/20)*Player_stat["Multiplicateur de dégat"]), 2),"Dégat reçu :", round(load_domage - (load_domage * Player_stat["Reduction de dégat"]), 2))
                                         else:
-                                            print ("Dégat donner :", (len(attack)/20)*Player_stat["Multiplicateur de dégat"])
+                                            print ("Dégat donner :", round(((len(attack)/20)*Player_stat["Multiplicateur de dégat"]), 2))
                                         time.sleep(5)
 
                                     
-                                    if Player_stat["PV"] > 0:
-                                        print ("Monstre vaincu !!\nBien jouer\n\n",elem,":\n________________________\n  HP :", 0,"   Dégât :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégât de base :", Player_stat["Multiplicateur de dégat"])
+                                    if Player_stat["PV"] > 0: #win the fight
+                                        print ("Monstre vaincu !!\nBien jouer\n\n",elem,":\n________________________\n  HP :", 0,"   Dégât :", load_domage,"\n\n\nVous :\n________________________\n HP :", Player_stat["PV"], "   Dégât de base :", Player_stat["Multiplicateur de dégat"])#Display information
                                         time.sleep(5)
                                         loot()
-                                    else:
-                                        print ("Woimp.. Woimp.. Woimp.. !!\nTout ne s'est pas passé comme prévu\n\n",elem,":\n________________________\n  HP :", 0,"   Dégât :", load_domage,"\n\n\nVous :\n________________________\n HP :", 0, "   Dégât de base :", Player_stat["Multiplicateur de dégat"])
+                                    else: #loose the fight
+                                        print ("Woimp.. Woimp.. Woimp.. !!\nTout ne s'est pas passé comme prévu\n\n",elem,":\n________________________\n  HP :", 0,"   Dégât :", load_domage,"\n\n\nVous :\n________________________\n HP :", 0, "   Dégât de base :", Player_stat["Multiplicateur de dégat"])#Display information
                                         start_loop = True
                                         return (False, posA)
                                     time.sleep(5)
@@ -306,7 +262,7 @@ def interaction (posA) :
                 count += 1 
 
 ## give the loot to the player
-def loot():
+def loot(): # give some random loot to the player
     if Player_stat["Biome actuel"] == "foret" :
         equip = randint(0,4)
         item = randint (0,2)
@@ -316,29 +272,31 @@ def loot():
         print ("vous avez trouver :",Bioms["Forêt"]["Loot"][equip],"et",Bioms["Forêt"]["Ressources"][item])
 
 ## Display the player stat
-def Display_stat ():
+def Display_stat (): #Display the player stat
     for i in Player_stat:
         if i != "Inventaire" :
             print (i,":", Player_stat[i])
 
 ## Check if the player win
-def win_check ():
+def win_check (): # If the player beat all the monster, the game stop and he win
     check = True
     for i in map_forest:
         for y in i:
-            if y == '/':
+            if y == '/': # if there still 1 "/" son he don't win yet
                 check = False
     return check
 
 
 #################################    Main Programme        ################################################
-
+# Starting display
 print(f"""
 {red}________________________________________________________________________________________________________________________________________{default}
 
 Salutation jeune aventurier, avant de commencer je t'invite à lire le README qui peut être utile, de plus la touche 'help' est disponible.
 
         Votre mission, si vous l'acceptez, sera de vaincre tous les monstres et de rétablir le pays dans cette plaisante forêt !
+    Pour rencontrer des monstres, il faut se déplacer sur les "/" et appuyer sur E pour interagir. Les "X" représentent de vulgaires cailloux.
+        
 
 {red}________________________________________________________________________________________________________________________________________{default}
 
@@ -352,14 +310,14 @@ print("Tu arrives dans une forêt !")
 time.sleep(2)
 
 
-map_forest = map_generation(player_X, player_Y)
+map_forest = map_generation(player_X, player_Y) # generation of the map
 
-Display_map (map_forest)
+Display_map (map_forest) # display the map
 
 while loop == False :
     choice = input("-->")
     if choice.upper() == "Z" or choice.upper() == "Q" or choice.upper() == "S" or choice.upper() == "D" : ## Test the input to moove in the map
-        if choice.upper() == "Z": ## Moov forward
+        if choice.upper() == "Z": ## Moove forward
             if player_Y-1 != -1:
                 map_forest, player_X, player_Y, last_location = Forward (map_forest, player_X, player_Y, last_location) 
                 last_D="F"
@@ -392,7 +350,7 @@ while loop == False :
     elif choice.upper() == "E" : ## start combat with an random monster
         result = interaction(last_location)
         if  result[0] == True:
-            if result[2] == "Leave":
+            if result[2] == "Leave": # if the player leave a fight he is put at his previous location (before enter in the event)
                 if last_D == "F": map_forest, player_X, player_Y, last_location = Backward (map_forest, player_X, player_Y, last_location) 
                 elif last_D == "B": map_forest, player_X, player_Y, last_location = Forward (map_forest, player_X, player_Y, last_location)
                 elif last_D == "R" : map_forest, player_X, player_Y, last_location = Left (map_forest, player_X, player_Y, last_location)
@@ -401,7 +359,7 @@ while loop == False :
             else:
                 last_location = result[1]
             Display_map(map_forest)
-            if win_check() == True :
+            if win_check() == True : #Win display
                 print("""
                   
 
@@ -411,7 +369,7 @@ while loop == False :
                   
                   """)
                 loop = True
-        elif result[0] == False :
+        elif result[0] == False : #Loose diplay
             loop = True
             print ("""
                    
@@ -441,4 +399,7 @@ while loop == False :
         print ("Saisie invalide")
 
 
+
+
+###### 262 lign of code / 300 #######
 
